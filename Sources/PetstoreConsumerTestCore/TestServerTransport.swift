@@ -31,6 +31,8 @@ import HTTPTypes
 /// let server = MyServer(transport: testTransport)
 /// ```
 public final class TestServerTransport: ServerTransport {
+    
+    
     /// Represents the input parameters for an API operation.
     public struct OperationInputs: Equatable {
         /// The HTTP method of the operation.
@@ -84,12 +86,39 @@ public final class TestServerTransport: ServerTransport {
     ///   - method: The HTTP method of the operation.
     ///   - path: The path components of the operation.
     /// - Throws: An error if there's an issue registering the operation.
+#if compiler(>=6.2)
     public func register(
-        _ handler:
-            @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (
-                HTTPResponse, HTTPBody?
-            ),
+        _ handler: @concurrent @escaping @Sendable (
+            HTTPRequest,
+            HTTPBody?,
+            ServerRequestMetadata
+        ) async throws -> (HTTPResponse, HTTPBody?),
+        method: HTTPTypes.HTTPRequest.Method,
+        path: String
+    ) throws {
+        registered.append(
+            Operation(
+                inputs: .init(method: method, path: path),
+                closure: handler
+            )
+        )
+    }
+#else
+    public func register(
+        _ handler: @Sendable @escaping (
+            HTTPRequest,
+            HTTPBody?,
+            ServerRequestMetadata
+        ) async throws -> (HTTPResponse, HTTPBody?),
         method: HTTPRequest.Method,
         path: String
-    ) throws { registered.append(Operation(inputs: .init(method: method, path: path), closure: handler)) }
+    ) throws {
+        registered.append(
+            Operation(
+                inputs: .init(method: method, path: path),
+                closure: handler
+            )
+        )
+    }
+#endif
 }

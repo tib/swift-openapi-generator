@@ -21,6 +21,12 @@ var swiftSettings: [SwiftSetting] = [
     // Require `any` for existential types.
     .enableUpcomingFeature("ExistentialAny"), .enableExperimentalFeature("StrictConcurrency=complete"),
 ]
+#if compiler(>=6.2)
+swiftSettings.append(
+    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault")
+)
+#endif
 
 let package = Package(
     name: "swift-openapi-generator",
